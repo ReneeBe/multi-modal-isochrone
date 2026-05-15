@@ -45,13 +45,24 @@ export function CompareView({ theme, onToggleTheme, onExitCompare }: Props) {
 
   return (
     <>
+      {/* "Walkshed   vs   Bikeshed" spanning the top of both maps,
+          with "vs" sitting on the center divider. Each label naturally
+          flanks its own map. */}
+      <div className="absolute top-5 left-0 right-0 z-30 flex items-center justify-center gap-6 md:gap-8 pointer-events-none">
+        <span className="text-base md:text-lg font-black tracking-[0.2em] uppercase text-emboss text-fuchsia-700 dark:text-fuchsia-300">
+          Walkshed
+        </span>
+        <span className="text-sm md:text-base font-semibold uppercase text-emboss text-zinc-500 dark:text-zinc-400">
+          vs
+        </span>
+        <span className="text-base md:text-lg font-black tracking-[0.2em] uppercase text-emboss text-fuchsia-700 dark:text-fuchsia-300">
+          Bikeshed
+        </span>
+      </div>
+
       {/* Top bar with controls (full-width, above the maps) */}
       <div className="absolute top-0 left-0 right-0 z-20 p-4 md:p-6 flex justify-between items-start gap-3 pointer-events-none">
         <div className="pointer-events-auto flex flex-col gap-3 max-w-md">
-          <h1 className="text-lg md:text-xl font-bold tracking-tight text-emboss text-zinc-900 dark:text-white">
-            Walkshed vs Bikeshed
-          </h1>
-
           <SearchBar
             onSearch={handleSearch}
             onUseMyLocation={handleUseMyLocation}
@@ -94,7 +105,6 @@ export function CompareView({ theme, onToggleTheme, onExitCompare }: Props) {
           contours={CONTOURS_BY_MODE.walking}
           poiTarget={POI_TARGET_BY_MODE.walking}
           mode="walking"
-          label="Walking"
           isLeft
         />
         <MapPanel
@@ -109,7 +119,6 @@ export function CompareView({ theme, onToggleTheme, onExitCompare }: Props) {
           contours={CONTOURS_BY_MODE.biking}
           poiTarget={POI_TARGET_BY_MODE.biking}
           mode="biking"
-          label="Biking"
           isLeft={false}
         />
       </div>
@@ -132,7 +141,6 @@ type MapPanelProps = {
   contours: number[];
   poiTarget: number;
   mode: 'walking' | 'biking';
-  label: string;
   isLeft: boolean;
 };
 
@@ -148,7 +156,6 @@ function MapPanel({
   contours,
   poiTarget,
   mode,
-  label,
   isLeft,
 }: MapPanelProps) {
   return (
@@ -160,15 +167,6 @@ function MapPanel({
         theme={theme}
         placeName={placeName}
       />
-
-      {/* Mode label — plain embossed text near the divider, no button styling */}
-      <div
-        className={`absolute top-5 ${isLeft ? 'right-6' : 'left-6'} pointer-events-none z-20`}
-      >
-        <span className="text-base md:text-lg font-black tracking-[0.2em] uppercase text-emboss text-fuchsia-700 dark:text-fuchsia-300">
-          {label}
-        </span>
-      </div>
 
       {/* Stat panel + legend stacked at the OUTER corner of each panel,
           so the left panel's UI hugs the left edge and the right panel's
