@@ -57,16 +57,17 @@ export async function countPoisInIsochrone(
   // One roundtrip instead of four.
   const query = `
 [out:json][timeout:25];
-(nwr["amenity"="restaurant"](${bbox}););
-out count;
-(nwr["amenity"="cafe"](${bbox}););
-out count;
-(nwr["leisure"="park"](${bbox}););
-out count;
-(nwr["public_transport"="station"](${bbox});
- nwr["railway"="station"](${bbox});
- nwr["highway"="bus_stop"](${bbox}););
-out count;
+nwr["amenity"="restaurant"](${bbox})->.r;
+nwr["amenity"="cafe"](${bbox})->.c;
+nwr["leisure"="park"](${bbox})->.p;
+( nwr["public_transport"="station"](${bbox});
+  nwr["railway"="station"](${bbox});
+  nwr["highway"="bus_stop"](${bbox});
+)->.t;
+.r out count;
+.c out count;
+.p out count;
+.t out count;
   `.trim();
 
   // Race all endpoints in parallel — first non-error wins. Public Overpass
@@ -82,12 +83,18 @@ out count;
         signal: controller.signal,
       });
       if (!res.ok) throw new Error(`${endpoint} returned ${res.status}`);
-      return (await res.json()) as {
+      const json = (await res.json()) as {
         elements: Array<{ type: string; tags?: { total?: string } }>;
       };
+      const countEls = json.elements.filter((el) => el.type === 'count');
+      if (countEls.length < 4) {
+        // Mirror accepted the request but didn't process all 4 out statements
+        // — reject so a different mirror gets a chance to win.
+        throw new Error(`${endpoint} returned ${countEls.length} of 4 counts`);
+      }
+      return json;
     }),
   ).catch(() => null);
-  // Cancel any losers so we don't keep their sockets open.
   controller.abort();
   if (!data) throw new Error('All Overpass endpoints failed');
   return parseCountsResponse(data);
