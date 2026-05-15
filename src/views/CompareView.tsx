@@ -45,19 +45,25 @@ export function CompareView({ theme, onToggleTheme, onExitCompare }: Props) {
 
   return (
     <>
-      {/* "Walkshed   vs   Bikeshed" spanning the top of both maps,
-          with "vs" sitting on the center divider. Each label naturally
-          flanks its own map. */}
-      <div className="absolute top-5 left-0 right-0 z-30 flex items-center justify-center gap-6 md:gap-8 pointer-events-none">
-        <span className="text-base md:text-lg font-black tracking-[0.2em] uppercase text-emboss text-fuchsia-700 dark:text-fuchsia-300">
-          Walkshed
-        </span>
-        <span className="text-sm md:text-base font-semibold uppercase text-emboss text-zinc-500 dark:text-zinc-400">
-          vs
-        </span>
-        <span className="text-base md:text-lg font-black tracking-[0.2em] uppercase text-emboss text-fuchsia-700 dark:text-fuchsia-300">
-          Bikeshed
-        </span>
+      {/* "Walkshed v | s Bikeshed" with the center divider splitting "vs"
+          so the v belongs to the walking side and the s to the bikeshed side. */}
+      <div className="absolute top-5 inset-x-0 z-30 flex items-baseline pointer-events-none">
+        <div className="w-1/2 flex justify-end items-baseline gap-3 pr-1">
+          <span className="text-base md:text-lg font-black tracking-[0.2em] uppercase text-emboss text-zinc-900 dark:text-white">
+            Walkshed
+          </span>
+          <span className="text-sm md:text-base font-semibold uppercase text-emboss text-zinc-500 dark:text-zinc-400">
+            v
+          </span>
+        </div>
+        <div className="w-1/2 flex justify-start items-baseline gap-3 pl-1">
+          <span className="text-sm md:text-base font-semibold uppercase text-emboss text-zinc-500 dark:text-zinc-400">
+            s
+          </span>
+          <span className="text-base md:text-lg font-black tracking-[0.2em] uppercase text-emboss text-zinc-900 dark:text-white">
+            Bikeshed
+          </span>
+        </div>
       </div>
 
       {/* Top bar with controls (full-width, above the maps) */}
