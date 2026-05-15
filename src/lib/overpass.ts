@@ -7,10 +7,14 @@ export type PoiCounts = {
   transit: number;
 };
 
+// overpass.osm.ch is intentionally NOT in this list: its older Overpass build
+// (0.7.59) silently returns all-zero counts for any multi-statement query, even
+// though it accepts the request and returns the right number of count elements.
+// Use mirrors running Overpass 0.7.62+ instead.
 const ENDPOINTS = [
   'https://overpass.kumi.systems/api/interpreter',
   'https://overpass-api.de/api/interpreter',
-  'https://overpass.osm.ch/api/interpreter',
+  'https://overpass.openstreetmap.fr/api/interpreter',
 ];
 
 function bboxOf(coords: number[][]): [number, number, number, number] {
@@ -88,9 +92,15 @@ nwr["leisure"="park"](${bbox})->.p;
       };
       const countEls = json.elements.filter((el) => el.type === 'count');
       if (countEls.length < 4) {
-        // Mirror accepted the request but didn't process all 4 out statements
-        // — reject so a different mirror gets a chance to win.
+        // Mirror accepted the request but didn't process all 4 out statements.
         throw new Error(`${endpoint} returned ${countEls.length} of 4 counts`);
+      }
+      const allZero = countEls.every((el) => (el.tags?.total ?? '0') === '0');
+      if (allZero) {
+        // A working mirror would return >0 for at least one POI category in
+        // almost any populated bbox. All-zero is the signature of an older
+        // Overpass build silently mis-processing multi-statement queries.
+        throw new Error(`${endpoint} returned all-zero counts`);
       }
       return json;
     }),
