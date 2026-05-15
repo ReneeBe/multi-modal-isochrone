@@ -49,7 +49,7 @@ export function CompareView({ theme, onToggleTheme, onExitCompare }: Props) {
       <div className="absolute top-0 left-0 right-0 z-20 p-4 md:p-6 flex justify-between items-start gap-3 pointer-events-none">
         <div className="pointer-events-auto flex flex-col gap-3 max-w-md">
           <h1 className="text-lg md:text-xl font-bold tracking-tight text-emboss text-zinc-900 dark:text-white">
-            Walking vs biking
+            Walkshed vs Bikeshed
           </h1>
 
           <SearchBar

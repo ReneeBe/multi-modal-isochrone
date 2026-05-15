@@ -41,7 +41,7 @@ export function SingleView({ theme, onToggleTheme, onEnterCompare }: Props) {
   );
 
   const error = searchError ?? fetchError;
-  const heading = mode === 'walking' ? 'Walking reach' : 'Biking reach';
+  const heading = mode === 'walking' ? 'Walkshed' : 'Bikeshed';
   const subheading =
     mode === 'walking'
       ? 'Drop a pin or search an address. See how far you can walk in 5, 10, 20, 30, 45, or 60 minutes.'
