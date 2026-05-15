@@ -13,47 +13,18 @@ const ENDPOINTS = [
   'https://overpass.osm.ch/api/interpreter',
 ];
 
-function polygonToOverpassPoly(coords: number[][]): string {
-  // Decimate to at most ~60 vertices. Overpass evaluates `poly:` point-by-point
-  // and very high-resolution rings are a major source of latency.
-  const stride = Math.max(1, Math.ceil(coords.length / 60));
-  const decimated: number[][] = [];
-  for (let i = 0; i < coords.length; i += stride) decimated.push(coords[i]);
-  if (decimated[decimated.length - 1] !== coords[coords.length - 1]) {
-    decimated.push(coords[coords.length - 1]);
+function bboxOf(coords: number[][]): [number, number, number, number] {
+  let minLat = Infinity,
+    minLng = Infinity,
+    maxLat = -Infinity,
+    maxLng = -Infinity;
+  for (const [lng, lat] of coords) {
+    if (lat < minLat) minLat = lat;
+    if (lat > maxLat) maxLat = lat;
+    if (lng < minLng) minLng = lng;
+    if (lng > maxLng) maxLng = lng;
   }
-  return decimated.map(([lng, lat]) => `${lat} ${lng}`).join(' ');
-}
-
-async function countOnePredicate(predicate: string, poly: string): Promise<number> {
-  const query = `[out:json][timeout:25];(${predicate}(poly:"${poly}"););out count;`;
-
-  let lastError: Error | null = null;
-  for (const endpoint of ENDPOINTS) {
-    try {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        body: 'data=' + encodeURIComponent(query),
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      });
-      if (res.status === 429 || res.status === 504) {
-        lastError = new Error(`${endpoint} returned ${res.status}`);
-        continue;
-      }
-      if (!res.ok) {
-        lastError = new Error(`Overpass failed: ${res.status}`);
-        continue;
-      }
-      const data = (await res.json()) as {
-        elements: Array<{ tags?: { total?: string } }>;
-      };
-      const total = data.elements?.[0]?.tags?.total;
-      return total ? parseInt(total, 10) : 0;
-    } catch (e) {
-      lastError = e instanceof Error ? e : new Error(String(e));
-    }
-  }
-  throw lastError ?? new Error('All Overpass endpoints failed');
+  return [minLat, minLng, maxLat, maxLng];
 }
 
 export async function countPoisInIsochrone(
@@ -75,17 +46,68 @@ export async function countPoisInIsochrone(
       : (target.geometry.coordinates[0]?.[0] as number[][] | undefined);
   if (!ring || ring.length < 4) return { restaurants: 0, cafes: 0, parks: 0, transit: 0 };
 
-  const poly = polygonToOverpassPoly(ring);
+  // Use the bounding box instead of the polygon. Counts are approximate
+  // (POIs in the bbox corners that fall outside the actual polygon are
+  // counted), but the query is dramatically faster: bbox lookups are
+  // index-accelerated; poly lookups iterate vertex-by-vertex.
+  const [s, w, n, e] = bboxOf(ring);
+  const bbox = `${s.toFixed(5)},${w.toFixed(5)},${n.toFixed(5)},${e.toFixed(5)}`;
 
-  const [restaurants, cafes, parks, transit] = await Promise.all([
-    countOnePredicate('nwr["amenity"="restaurant"]', poly),
-    countOnePredicate('nwr["amenity"="cafe"]', poly),
-    countOnePredicate('nwr["leisure"="park"]', poly),
-    countOnePredicate(
-      'nwr["public_transport"="station"];nwr["railway"="station"];nwr["highway"="bus_stop"]',
-      poly,
-    ),
-  ]);
+  // Single query, four named sets, four `out count;` statements.
+  // One roundtrip instead of four.
+  const query = `
+[out:json][timeout:25];
+(nwr["amenity"="restaurant"](${bbox}););
+out count;
+(nwr["amenity"="cafe"](${bbox}););
+out count;
+(nwr["leisure"="park"](${bbox}););
+out count;
+(nwr["public_transport"="station"](${bbox});
+ nwr["railway"="station"](${bbox});
+ nwr["highway"="bus_stop"](${bbox}););
+out count;
+  `.trim();
 
-  return { restaurants, cafes, parks, transit };
+  let lastError: Error | null = null;
+  for (const endpoint of ENDPOINTS) {
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        body: 'data=' + encodeURIComponent(query),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+      if (res.status === 429 || res.status === 504) {
+        lastError = new Error(`${endpoint} returned ${res.status}`);
+        continue;
+      }
+      if (!res.ok) {
+        lastError = new Error(`Overpass failed: ${res.status}`);
+        continue;
+      }
+      const data = (await res.json()) as {
+        elements: Array<{
+          type: string;
+          tags?: { total?: string };
+        }>;
+      };
+      return parseCountsResponse(data);
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+    }
+  }
+  throw lastError ?? new Error('All Overpass endpoints failed');
+}
+
+function parseCountsResponse(data: {
+  elements: Array<{ type: string; tags?: { total?: string } }>;
+}): PoiCounts {
+  const counts: PoiCounts = { restaurants: 0, cafes: 0, parks: 0, transit: 0 };
+  const countEls = data.elements.filter((el) => el.type === 'count');
+  // Order matches the query: restaurants, cafes, parks, transit.
+  counts.restaurants = parseInt(countEls[0]?.tags?.total ?? '0', 10);
+  counts.cafes = parseInt(countEls[1]?.tags?.total ?? '0', 10);
+  counts.parks = parseInt(countEls[2]?.tags?.total ?? '0', 10);
+  counts.transit = parseInt(countEls[3]?.tags?.total ?? '0', 10);
+  return counts;
 }
