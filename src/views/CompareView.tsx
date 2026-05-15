@@ -48,16 +48,16 @@ export function CompareView({ theme, onToggleTheme, onExitCompare }: Props) {
       {/* "Walkshed v | s Bikeshed" with the center divider splitting "vs"
           so the v belongs to the walking side and the s to the bikeshed side. */}
       <div className="absolute top-5 inset-x-0 z-30 flex items-baseline pointer-events-none">
-        <div className="w-1/2 flex justify-end items-baseline gap-3 pr-1">
+        <div className="w-1/2 flex justify-end items-baseline gap-3">
           <span className="text-base md:text-lg font-black tracking-[0.2em] uppercase text-emboss text-zinc-900 dark:text-white">
             Walkshed
           </span>
-          <span className="text-sm md:text-base font-semibold uppercase text-emboss text-zinc-500 dark:text-zinc-400">
+          <span className="text-sm md:text-base font-semibold lowercase text-emboss text-zinc-500 dark:text-zinc-400">
             v
           </span>
         </div>
-        <div className="w-1/2 flex justify-start items-baseline gap-3 pl-1">
-          <span className="text-sm md:text-base font-semibold uppercase text-emboss text-zinc-500 dark:text-zinc-400">
+        <div className="w-1/2 flex justify-start items-baseline gap-3">
+          <span className="text-sm md:text-base font-semibold lowercase text-emboss text-zinc-500 dark:text-zinc-400">
             s
           </span>
           <span className="text-base md:text-lg font-black tracking-[0.2em] uppercase text-emboss text-zinc-900 dark:text-white">
