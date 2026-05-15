@@ -61,10 +61,10 @@ export function SingleView({ theme, onToggleTheme, onEnterCompare }: Props) {
         <div className="flex justify-between items-start gap-3">
           <div className="pointer-events-auto flex flex-col gap-3 max-w-md">
             <div className="flex flex-col gap-1">
-              <h1 className="text-lg md:text-xl font-bold tracking-tight drop-shadow-lg text-zinc-900 dark:text-white">
+              <h1 className="text-lg md:text-xl font-bold tracking-tight text-emboss text-zinc-900 dark:text-white">
                 {heading}
               </h1>
-              <p className="text-xs drop-shadow text-zinc-700 dark:text-zinc-400">
+              <p className="text-xs font-medium text-emboss text-zinc-700 dark:text-zinc-300">
                 {subheading}
               </p>
             </div>

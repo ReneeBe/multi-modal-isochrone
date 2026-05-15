@@ -66,6 +66,25 @@ html.dark body {
   border-bottom-color: rgba(24, 24, 27, 0.95);
 }
 
+/* Embossed/outlined text for headings and labels overlaying the map.
+   A faint multi-direction outline keeps the text readable on any backdrop. */
+.text-emboss {
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95),
+    0 -1px 0 rgba(255, 255, 255, 0.85),
+    1px 0 0 rgba(255, 255, 255, 0.95),
+    -1px 0 0 rgba(255, 255, 255, 0.95),
+    0 2px 6px rgba(0, 0, 0, 0.18);
+}
+.dark .text-emboss {
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.85),
+    0 -1px 0 rgba(0, 0, 0, 0.85),
+    1px 0 0 rgba(0, 0, 0, 0.85),
+    -1px 0 0 rgba(0, 0, 0, 0.85),
+    0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
 .skeleton {
   background: linear-gradient(
     90deg,
