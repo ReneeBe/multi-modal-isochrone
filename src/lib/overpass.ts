@@ -69,34 +69,28 @@ out count;
 out count;
   `.trim();
 
-  let lastError: Error | null = null;
-  for (const endpoint of ENDPOINTS) {
-    try {
+  // Race all endpoints in parallel — first non-error wins. Public Overpass
+  // mirrors have different rate limits and queue depths; with three in flight
+  // we get the response from whichever happens to be free.
+  const controller = new AbortController();
+  const data = await Promise.any(
+    ENDPOINTS.map(async (endpoint) => {
       const res = await fetch(endpoint, {
         method: 'POST',
         body: 'data=' + encodeURIComponent(query),
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        signal: controller.signal,
       });
-      if (res.status === 429 || res.status === 504) {
-        lastError = new Error(`${endpoint} returned ${res.status}`);
-        continue;
-      }
-      if (!res.ok) {
-        lastError = new Error(`Overpass failed: ${res.status}`);
-        continue;
-      }
-      const data = (await res.json()) as {
-        elements: Array<{
-          type: string;
-          tags?: { total?: string };
-        }>;
+      if (!res.ok) throw new Error(`${endpoint} returned ${res.status}`);
+      return (await res.json()) as {
+        elements: Array<{ type: string; tags?: { total?: string } }>;
       };
-      return parseCountsResponse(data);
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err));
-    }
-  }
-  throw lastError ?? new Error('All Overpass endpoints failed');
+    }),
+  ).catch(() => null);
+  // Cancel any losers so we don't keep their sockets open.
+  controller.abort();
+  if (!data) throw new Error('All Overpass endpoints failed');
+  return parseCountsResponse(data);
 }
 
 function parseCountsResponse(data: {
