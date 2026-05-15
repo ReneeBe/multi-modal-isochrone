@@ -63,7 +63,9 @@ export function SearchBar({
         {isLocating ? 'Locating…' : 'Use my location'}
       </button>
       {placeName && (
-        <p className="text-xs px-1 truncate text-zinc-600 dark:text-zinc-500">📍 {placeName}</p>
+        <p className="text-xs px-1 truncate font-medium text-emboss text-zinc-700 dark:text-zinc-300">
+          📍 {placeName}
+        </p>
       )}
     </form>
   );

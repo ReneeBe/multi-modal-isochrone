@@ -70,19 +70,19 @@ html.dark body {
    A faint multi-direction outline keeps the text readable on any backdrop. */
 .text-emboss {
   text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.95),
-    0 -1px 0 rgba(255, 255, 255, 0.85),
-    1px 0 0 rgba(255, 255, 255, 0.95),
-    -1px 0 0 rgba(255, 255, 255, 0.95),
-    0 2px 6px rgba(0, 0, 0, 0.18);
+    0 1px 0 rgba(255, 255, 255, 0.65),
+    0 -1px 0 rgba(255, 255, 255, 0.55),
+    1px 0 0 rgba(255, 255, 255, 0.65),
+    -1px 0 0 rgba(255, 255, 255, 0.65),
+    0 1px 3px rgba(0, 0, 0, 0.12);
 }
 .dark .text-emboss {
   text-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.85),
-    0 -1px 0 rgba(0, 0, 0, 0.85),
-    1px 0 0 rgba(0, 0, 0, 0.85),
-    -1px 0 0 rgba(0, 0, 0, 0.85),
-    0 2px 8px rgba(0, 0, 0, 0.5);
+    0 1px 0 rgba(0, 0, 0, 0.6),
+    0 -1px 0 rgba(0, 0, 0, 0.55),
+    1px 0 0 rgba(0, 0, 0, 0.6),
+    -1px 0 0 rgba(0, 0, 0, 0.6),
+    0 1px 4px rgba(0, 0, 0, 0.35);
 }
 
 .skeleton {
