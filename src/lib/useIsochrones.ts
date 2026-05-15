@@ -39,6 +39,10 @@ export function useIsochrones(
     (async () => {
       setError(null);
       setLoadingIso(true);
+      // Set loadingPois immediately too, so the stat panel jumps straight to
+      // the skeleton instead of flashing "n/a" while the isochrone fetch
+      // is still in flight.
+      setLoadingPois(true);
       setIsochrones(null);
       setPois(null);
       try {
